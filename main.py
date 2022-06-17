@@ -55,20 +55,23 @@ async def imports(shop_unit_import_request: ShopUnitImportRequest):
 
 
 @app.delete("/delete/{id}")
-async def delete_by_id(id: int):
+async def delete_by_id(id: str):
     return PlainTextResponse(todo_error, status_code=500)
 
 
 @app.delete("/nodes/{id}")
-async def nodes(id: int):
+async def nodes(id: str):
     return PlainTextResponse(todo_error, status_code=500)
 
 
 @app.get("/sales")
-async def sales():
-    return PlainTextResponse(todo_error, status_code=500)
+async def sales(date: str):
+    if is_valid_date(date):
+        return PlainTextResponse(ok_error, status_code=200)
+    else:
+        return PlainTextResponse(validation_error, status_code=400)
 
 
 @app.get("/node/{id}/statistic")
-async def node_statistic(id: int):
+async def node_statistic(id: str, dateStart: str, dateEnd: str):
     return PlainTextResponse(todo_error, status_code=500)
