@@ -1,3 +1,4 @@
-fastapi
+fastapi~=0.78.0
 uvicorn
-pydantic
+pydantic~=1.9.1
+tarantool~=0.8.0
