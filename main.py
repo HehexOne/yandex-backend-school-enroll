@@ -20,7 +20,7 @@ def is_valid_date(mts):
 def is_valid_price(sui: ShopUnitImport):
     if not sui.price and sui.type == ShopUnitType.CATEGORY:
         return True
-    elif sui.type == ShopUnitType.OFFER and sui.price and (-9223372036854775808 <= sui.price <= 9223372036854775807):
+    elif sui.type == ShopUnitType.OFFER and sui.price and (0 <= sui.price <= 9223372036854775807):
         return True
     else:
         return False

@@ -3,9 +3,6 @@ from enum import Enum
 from typing import Optional, List
 
 
-# TODO Type checking in main file (datetime (date) and int64 (price))
-
-
 class ShopUnitType(str, Enum):
     OFFER = "OFFER"
     CATEGORY = "CATEGORY"
