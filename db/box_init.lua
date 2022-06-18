@@ -1,3 +1,5 @@
+queue = require('queue')
+
 box.cfg {
     log_level = 5,
     wal_mode = "write"
@@ -19,7 +21,12 @@ units:create_index('dateTime', {type = 'tree', parts = {'date'}, unique = false,
 
 
 function get_mean_sum(id)
-    local root = units:select(id)[1];
-    local price = root[6];
+    local root = units:select(id)[1]
+    local price = root[6]
     return price
+end
+
+function update_prices(id)
+    local init_unit = units:select(id)[1]
+    local q = queue:new()
 end

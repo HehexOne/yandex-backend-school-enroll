@@ -52,6 +52,6 @@ if __name__ == '__main__':
 
     print(tu_db.delete("123"))
 
-    print(tu_db.select("3fa85f64-5717-4562-b3fc-2c963f66a333"))
+    print(tu_db.select("3fa85f64-5717-4562-b3fc-2c963f66a444"))
     print(tu_db.call("get_mean_sum", "3fa85f64-5717-4562-b3fc-2c963f66a333"))
 
