@@ -237,27 +237,6 @@ def test_nodes():
     print("Test nodes passed.")
 
 
-def test_sales():
-    params = urllib.parse.urlencode({
-        "date": "2022-02-04T00:00:00.000Z"
-    })
-    status, response = request(f"/sales?{params}", json_response=True)
-    assert status == 200, f"Expected HTTP status code 200, got {status}"
-    print("Test sales passed.")
-
-
-def test_stats():
-    params = urllib.parse.urlencode({
-        "dateStart": "2022-02-01T00:00:00.000Z",
-        "dateEnd": "2022-02-03T00:00:00.000Z"
-    })
-    status, response = request(
-        f"/node/{ROOT_ID}/statistic?{params}", json_response=True)
-
-    assert status == 200, f"Expected HTTP status code 200, got {status}"
-    print("Test stats passed.")
-
-
 def test_delete():
     status, _ = request(f"/delete/{ROOT_ID}", method="DELETE")
     assert status == 200, f"Expected HTTP status code 200, got {status}"
@@ -271,8 +250,6 @@ def test_delete():
 def test_all():
     test_import()
     test_nodes()
-    test_sales()
-    test_stats()
     test_delete()
 
 

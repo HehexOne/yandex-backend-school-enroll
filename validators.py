@@ -1,5 +1,6 @@
 from datetime import datetime
 from schema import *
+from db.db_connection import *
 
 
 def is_valid_date(mts):
@@ -11,7 +12,7 @@ def is_valid_date(mts):
 
 
 def is_valid_price(sui: ShopUnitImport):
-    if (not sui.price and sui.type == ShopUnitType.CATEGORY) or\
+    if (not sui.price and sui.type == ShopUnitType.CATEGORY) or \
             (sui.type == ShopUnitType.OFFER and sui.price and (0 <= sui.price <= 9223372036854775807)):
         return True
     else:
@@ -19,8 +20,28 @@ def is_valid_price(sui: ShopUnitImport):
 
 
 def is_valid_shop_unit_import_request(suir: ShopUnitImportRequest):
-    if (not all(map(is_valid_price, suir.items))) or (not is_valid_date(suir.updateDate)) or\
-            len(suir.items) != len(set(map(lambda item: item.id, suir.items))):
+    db = RedisUnits()
+    unit_ids_set = set()
+    last_size = 0
+    for unit in suir.items:
+        val = db.get(unit.id)
+        if val and val.type != unit.type:
+            return False
+        if not unit.name:
+            return False
+        if unit.type == ShopUnitType.CATEGORY and unit.price is not None:
+            return False
+        if unit.parentId:
+            parent = db.get(unit.parentId)
+            if parent:
+                if parent.type == ShopUnitType.OFFER:
+                    return False
+        if not is_valid_price(unit):
+            return False
+        unit_ids_set.add(unit.id)
+        if len(unit_ids_set) == last_size:
+            return False
+        last_size += 1
+    if not is_valid_date(suir.updateDate):
         return False
-    else:
-        return True
+    return True

@@ -12,6 +12,10 @@ ok_error = Error(code=200, message="OK!").json()
 not_found_error = Error(code=404, message="Item not found").json()
 
 
+def response(content, code):
+    return PlainTextResponse(content, code, media_type="application/json")
+
+
 app = FastAPI(title="Mega Market Open API",
               version="1.0",
               openapi_version="3.0.0",
@@ -20,15 +24,17 @@ app = FastAPI(title="Mega Market Open API",
 
 @app.exception_handler(RequestValidationError)
 def validation_exception_handler(request, exc):
-    return PlainTextResponse(validation_error, status_code=400)
+    return response(validation_error, 400)
 
 
 @app.post("/imports")
 async def imports(shop_unit_import_request: ShopUnitImportRequest):
     if is_valid_shop_unit_import_request(shop_unit_import_request):
-        return PlainTextResponse(ok_error, status_code=200)
+        for unit in shop_unit_import_request.items:
+            insert_node(unit, shop_unit_import_request.updateDate)
+        return response(ok_error, 200)
     else:
-        return PlainTextResponse(validation_error, status_code=400)
+        return response(validation_error, 400)
 
 
 @app.delete("/delete/{id}")
@@ -36,12 +42,12 @@ def delete_by_id(id: str):
     db = RedisUnits()
     unit = db.get(id)
     if not unit:
-        return PlainTextResponse(not_found_error, status_code=404)
+        return response(not_found_error, 404)
     if unit.type == ShopUnitType.CATEGORY:
         delete_category(unit.id)
     else:
         delete_category(unit.id)
-    return PlainTextResponse(ok_error, status_code=200)
+    return response(ok_error, 200)
 
 
 @app.get("/nodes/{id}")
@@ -49,18 +55,6 @@ def nodes(id: str):
     db = RedisUnits()
     unit = db.get(id)
     if unit:
-        return PlainTextResponse(get_node(unit.id).json(), status_code=200)
-    return PlainTextResponse(not_found_error, status_code=404)
+        return response(get_node(unit.id).json(), 200)
+    return response(not_found_error, 404)
 
-
-@app.get("/sales")
-def sales(date: str):
-    if is_valid_date(date):
-        return PlainTextResponse(ok_error, status_code=200)
-    else:
-        return PlainTextResponse(validation_error, status_code=400)
-
-
-@app.get("/node/{id}/statistic")
-def node_statistic(id: str, dateStart: str, dateEnd: str):
-    return PlainTextResponse(todo_error, status_code=500)
