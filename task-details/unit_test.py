@@ -8,7 +8,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-API_BASEURL = "http://localhost:80"
+API_BASEURL = "http://situations-2015.usr.yandex-academy.ru"
 
 ROOT_ID = "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1"
 
@@ -237,6 +237,15 @@ def test_nodes():
     print("Test nodes passed.")
 
 
+def test_sales():
+    params = urllib.parse.urlencode({
+        "date": "2022-02-04T00:00:00.000Z"
+    })
+    status, response = request(f"/sales?{params}", json_response=True)
+    assert status == 200, f"Expected HTTP status code 200, got {status}"
+    print("Test sales passed.")
+
+
 def test_delete():
     status, _ = request(f"/delete/{ROOT_ID}", method="DELETE")
     assert status == 200, f"Expected HTTP status code 200, got {status}"
@@ -250,6 +259,7 @@ def test_delete():
 def test_all():
     test_import()
     test_nodes()
+    test_sales()
     test_delete()
 
 

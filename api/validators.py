@@ -1,5 +1,4 @@
 from datetime import datetime
-from schema import *
 from db.db_connection import *
 
 

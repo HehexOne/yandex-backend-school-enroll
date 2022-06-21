@@ -15,7 +15,7 @@ class ShopUnit(BaseModel):
     parentId: Optional[str] = None
     type: ShopUnitType
     price: Optional[int] = None
-    children: List = []
+    children: Optional[List]
 
 
 class ShopUnitImport(BaseModel):

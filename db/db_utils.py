@@ -1,6 +1,8 @@
+from datetime import datetime, timedelta
 from collections import deque
 from db.db_connection import *
 from math import floor
+from sortedcontainers import SortedList
 
 
 def delete_category(cat_id):
@@ -14,8 +16,14 @@ def delete_category(cat_id):
     q.append(unit)
     while len(q) != 0:
         unit = q.popleft()
-        for child in unit.children:
-            q.append(db.get(child))
+        if unit.children:
+            for child in unit.children:
+                q.append(db.get(child))
+        if unit.type == ShopUnitType.OFFER:
+            cache = SortedList(db.get_cache()['cache'], key=lambda x: x[0])
+            unit_cache_index = cache.index([unit.date, unit.id])
+            cache.pop(unit_cache_index)
+            db.set_cache({'cache': list(cache)})
         db.delete(unit.id)
 
 
@@ -26,6 +34,10 @@ def delete_offer(off_id):
     parent_unit.children.pop(parent_unit.children.index(unit.id))
     db.delete(unit.id)
     db.set(parent_unit.id, parent_unit)
+    cache = SortedList(db.get_cache()['cache'], key=lambda x: x[0])
+    unit_cache_index = cache.index([unit.date, unit.id])
+    cache.pop(unit_cache_index)
+    db.set_cache({'cache': list(cache)})
 
 
 def get_node(node_id, offers=None, with_offers=False):
@@ -60,9 +72,17 @@ def insert_node(node: ShopUnitImport, date):
     db = RedisUnits()
     unit = ShopUnit(**node.dict(), date=date)
     if unit.type == ShopUnitType.CATEGORY:
+        unit.children = []
         val = db.get(unit.id)
         if val:
             unit.price = val.price
+    else:
+        unit.children = None
+        cache = SortedList(db.get_cache()['cache'], key=lambda x: x[0])
+        unit_cache_pair = [unit.date, unit.id]
+        if unit_cache_pair not in cache:
+            cache.add([unit.date, unit.id])
+            db.set_cache({'cache': list(cache)})
     if unit.parentId:
         parent_unit = db.get(unit.parentId)
         parent_unit.children.append(unit.id)
@@ -74,3 +94,24 @@ def insert_node(node: ShopUnitImport, date):
         db.set(unit.id, unit)
 
 
+def convert_date(date):
+    return datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%f%z')
+
+
+def get_sales(date):
+    db = RedisUnits()
+    date = convert_date(date)
+    pred_date = date - timedelta(hours=24)
+    res = []
+    cache = SortedList(db.get_cache()['cache'], key=lambda x: x[0])
+    for c_date, id in cache:
+        unit_date = convert_date(c_date)
+        if unit_date > date:
+            break
+        elif unit_date < pred_date:
+            continue
+        else:
+            unit = db.get(id).dict()
+            unit.pop("children")
+            res.append(unit)
+    return res

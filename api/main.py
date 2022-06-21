@@ -1,10 +1,8 @@
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import PlainTextResponse
-from db.db_connection import *
 from db.db_utils import *
-from schema import *
-from validators import *
+from api.validators import *
 
 validation_error = Error(code=400, message="Validation Failed").json()
 todo_error = Error(code=500, message="TODO").json()
@@ -58,3 +56,10 @@ def nodes(id: str):
         return response(get_node(unit.id).json(), 200)
     return response(not_found_error, 404)
 
+
+@app.get("/sales")
+def sales(date: str):
+    if is_valid_date(date):
+        return response(json.dumps({"items": get_sales(date)}), 200)
+    else:
+        return response(validation_error, 400)

@@ -3,7 +3,7 @@ uvicorn
 pydantic~=1.9.1
 redis
 gunicorn
-fcntl
 uvloop
 httpx
 httptools
+sortedcontainers
