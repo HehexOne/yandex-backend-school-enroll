@@ -1,4 +1,6 @@
 fastapi~=0.78.0
 uvicorn
 pydantic~=1.9.1
-tarantool~=0.8.0
+redis
+gunicorn
+fcntl

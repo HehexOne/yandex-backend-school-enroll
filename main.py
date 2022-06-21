@@ -1,36 +1,15 @@
-from datetime import datetime
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import PlainTextResponse
+from db.db_connection import *
+from db.db_utils import *
 from schema import *
+from validators import *
 
 validation_error = Error(code=400, message="Validation Failed").json()
 todo_error = Error(code=500, message="TODO").json()
 ok_error = Error(code=200, message="OK!").json()
-
-
-def is_valid_date(mts):
-    try:
-        datetime.strptime(mts, '%Y-%m-%dT%H:%M:%S.%f%z')
-        return True
-    except ValueError:
-        return False
-
-
-def is_valid_price(sui: ShopUnitImport):
-    if (not sui.price and sui.type == ShopUnitType.CATEGORY) or\
-            (sui.type == ShopUnitType.OFFER and sui.price and (0 <= sui.price <= 9223372036854775807)):
-        return True
-    else:
-        return False
-
-
-def is_valid_shop_unit_import_request(suir: ShopUnitImportRequest):
-    if (not all(map(is_valid_price, suir.items))) or (not is_valid_date(suir.updateDate)) or\
-            len(suir.items) != len(set(map(lambda item: item.id, suir.items))):
-        return False
-    else:
-        return True
+not_found_error = Error(code=404, message="Item not found").json()
 
 
 app = FastAPI(title="Mega Market Open API",
@@ -40,7 +19,7 @@ app = FastAPI(title="Mega Market Open API",
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request, exc):
+def validation_exception_handler(request, exc):
     return PlainTextResponse(validation_error, status_code=400)
 
 
@@ -53,17 +32,29 @@ async def imports(shop_unit_import_request: ShopUnitImportRequest):
 
 
 @app.delete("/delete/{id}")
-async def delete_by_id(id: str):
-    return PlainTextResponse(todo_error, status_code=500)
+def delete_by_id(id: str):
+    db = RedisUnits()
+    unit = db.get(id)
+    if not unit:
+        return PlainTextResponse(not_found_error, status_code=404)
+    if unit.type == ShopUnitType.CATEGORY:
+        delete_category(unit.id)
+    else:
+        delete_category(unit.id)
+    return PlainTextResponse(ok_error, status_code=200)
 
 
-@app.delete("/nodes/{id}")
-async def nodes(id: str):
-    return PlainTextResponse(todo_error, status_code=500)
+@app.get("/nodes/{id}")
+def nodes(id: str):
+    db = RedisUnits()
+    unit = db.get(id)
+    if unit:
+        return PlainTextResponse(get_node(unit.id).json(), status_code=200)
+    return PlainTextResponse(not_found_error, status_code=404)
 
 
 @app.get("/sales")
-async def sales(date: str):
+def sales(date: str):
     if is_valid_date(date):
         return PlainTextResponse(ok_error, status_code=200)
     else:
@@ -71,5 +62,5 @@ async def sales(date: str):
 
 
 @app.get("/node/{id}/statistic")
-async def node_statistic(id: str, dateStart: str, dateEnd: str):
+def node_statistic(id: str, dateStart: str, dateEnd: str):
     return PlainTextResponse(todo_error, status_code=500)
