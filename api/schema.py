@@ -1,6 +1,15 @@
-from pydantic import BaseModel
+from datetime import datetime
+from pydantic import BaseModel, validator
 from enum import Enum
 from typing import Optional, List
+
+
+def is_valid_date(mts) -> (bool, datetime):
+    try:
+        v = datetime.strptime(mts, '%Y-%m-%dT%H:%M:%S.%f%z')
+        return True, v
+    except ValueError:
+        return False, None
 
 
 class ShopUnitType(str, Enum):
@@ -17,6 +26,13 @@ class ShopUnit(BaseModel):
     price: Optional[int] = None
     children: Optional[List]
 
+    @validator('date')
+    def date_valid(cls, v):
+        res, val = is_valid_date(v)
+        if not res:
+            raise ValueError("Failed to validate")
+        return datetime.timestamp(val)
+
 
 class ShopUnitImport(BaseModel):
     id: str
@@ -29,6 +45,13 @@ class ShopUnitImport(BaseModel):
 class ShopUnitImportRequest(BaseModel):
     items: List[ShopUnitImport]
     updateDate: str
+
+    @validator('updateDate')
+    def date_valid(cls, v):
+        res, val = is_valid_date(v)
+        if not res:
+            raise ValueError("Failed to validate")
+        return datetime.timestamp(val)
 
 
 class ShopUnitStatisticUnit(BaseModel):
@@ -47,3 +70,4 @@ class ShopUnitStatisticResponse(BaseModel):
 class Error(BaseModel):
     code: int
     message: str
+
