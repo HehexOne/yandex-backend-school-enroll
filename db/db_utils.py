@@ -111,7 +111,9 @@ def get_sales(date):
         elif unit_date < pred_date:
             continue
         else:
-            unit = db.get(id).dict()
-            unit.pop("children")
-            res.append(unit)
+            unit = db.get(id)
+            if unit:
+                unit.dict()
+                unit.pop("children")
+                res.append(unit)
     return res

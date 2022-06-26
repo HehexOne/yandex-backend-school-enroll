@@ -1,8 +1,10 @@
+import tarantool
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import PlainTextResponse
 from db.db_utils import *
 from api.validators import *
+from tarantool_db.tarantool_connection import TarantoolDB
 
 validation_error = Error(code=400, message="Validation Failed").json()
 todo_error = Error(code=500, message="TODO").json()
@@ -28,9 +30,12 @@ def validation_exception_handler(request, exc):
 @app.post("/imports")
 async def imports(shop_unit_import_request: ShopUnitImportRequest):
     if is_valid_shop_unit_import_request(shop_unit_import_request):
-        for unit in shop_unit_import_request.items:
-            insert_node(unit, shop_unit_import_request.updateDate)
-        return response(ok_error, 200)
+        db = TarantoolDB()
+        try:
+            res = db.inserts(shop_unit_import_request.json())
+            return response(res[0], 200)
+        except tarantool.DatabaseError as e:
+            return response(validation_error, 400)
     else:
         return response(validation_error, 400)
 
