@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from pydantic import BaseModel, validator
 from enum import Enum
 from typing import Optional, List
@@ -70,3 +70,4 @@ class ShopUnitStatisticResponse(BaseModel):
 class Error(BaseModel):
     code: int
     message: str
+

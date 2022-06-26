@@ -1,13 +1,16 @@
 services:
+  tarantool:
+    build:
+      context: tarantool_db
+      dockerfile: Dockerfile
+    ports:
+      - "3301:3301"
+    restart: always
+
   api:
     build:
       context: .
       dockerfile: api/Dockerfile
     ports:
       - "80:80"
-
-  redis:
-    image: "redis"
-    ports:
-      - "6379:6379"
-
+    restart: always
